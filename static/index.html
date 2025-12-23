@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YOLO Object Detection</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1> YOLO Object Detection</h1>
+
+    <form id="uploadForm">
+        <input type="file" id="fileInput" accept="image/*" required>
+        <button type="submit">Detect</button>
+    </form>
+
+    <div id="result"></div>
+    <img id="preview" src="" alt="preview" style="max-width: 400px; margin-top: 10px;">
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const result = document.getElementById('result');
+        const preview = document.getElementById('preview');
+
+        fileInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file) preview.src = URL.createObjectURL(file);
+        });
+
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append("file", file);
+
+            result.textContent = "Processing...";
+            const res = await fetch("/detect/", { method: "POST", body: formData });
+            const data = await res.json();
+
+            result.textContent = "Detected: " + data.detected_objects.join(", ");
+        });
+    </script>
+    <h2>Text Summarization</h2>
+
+    <textarea id="inputText" rows="8" cols="50" placeholder="Enter text to summarize..."></textarea>
+    <br><br>
+
+    <button onclick="summarize()">Summarize</button>
+
+    <br><br>
+
+    <h3>Summary Result:</h3>
+    <div id="summaryBox"
+        style="width: 100%; 
+                min-height: 120px; 
+                border: 1px solid #ccc; 
+                padding: 10px; 
+                border-radius: 8px;">
+        <i>The summary will appear here...</i>
+    </div>
+    <script>
+    async function summarize() {
+        const text = document.getElementById("inputText").value;
+
+        if (!text.trim()) {
+            document.getElementById("summaryBox").innerText = "Please enter text!";
+            return;
+        }
+
+        try {
+            const response = await fetch(`/summarize?text=${encodeURIComponent(text)}`);
+            const data = await response.json();
+
+            // Show the summary in the box
+            document.getElementById("summaryBox").innerText = data.summary;
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById("summaryBox").innerText = "Error generating summary.";
+        }
+    }
+    </script>
+
+
+</body>
+</html>
+
